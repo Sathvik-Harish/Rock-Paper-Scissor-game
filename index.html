@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Rock Paper Scissors</title>
+    <!-- Google Fonts - Inter for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Body Styling */
+        body {
+            font-family: 'Inter', sans-serif; /* Use Inter font */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(to right, #6dd5ed, #2193b0); /* Gradient background */
+            color: #fff; /* White text for contrast */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            padding: 20px; /* Add some padding for smaller screens */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        /* Main App Container */
+        .app-container {
+            background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent dark background */
+            padding: 30px;
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow */
+            text-align: center;
+            width: 100%; /* Full width on small screens */
+            max-width: 600px; /* Max width for larger screens */
+            box-sizing: border-box;
+            border: 2px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Spacing between sections */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Text shadow */
+        }
+
+        /* Section Styling (for username, lobby, game) */
+        .section {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: left; /* Align content to the left within sections */
+        }
+
+        .section h2 {
+            font-size: 1.8em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #a7f3d0;
+        }
+
+        /* Username Input & Display */
+        #username-section input[type="text"] {
+            width: calc(100% - 22px); /* Full width minus padding/border */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1em;
+        }
+
+        #username-section button {
+            width: 100%;
+        }
+
+        #current-user-info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        /* Lobby Styling */
+        #lobby-section {
+            display: none; /* Hidden by default */
+        }
+
+        #online-users-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        #online-users-list li {
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        #online-users-list li:last-child {
+            border-bottom: none;
+        }
+
+        #online-users-list li button {
+            background-color: #2193b0; /* Blue for invite/join */
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #online-users-list li button:hover {
+            background-color: #1a7aa2;
+            transform: translateY(-1px);
+        }
+
+        /* Game Board Styling */
+        #game-board-section {
+            display: none; /* Hidden by default */
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            background-color: rgba(255, 255, 255, 0.1); /* Lighter semi-transparent background */
+            padding: 15px 10px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2); /* Inner shadow */
+        }
+
+        .score-item {
+            font-size: 1.2em;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 2em;
+            color: #a7f3d0; /* Light green for scores */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Choices Button Container */
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Space between buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            margin-bottom: 25px;
+        }
+
+        /* Choice Button Styling */
+        .choice-btn {
+            background-color: #f7a36c; /* Warm orange button color */
+            color: #fff;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease; /* Smooth transition for hover effects */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Button shadow */
+            text-transform: capitalize; /* Capitalize button text */
+            flex-grow: 1; /* Allow buttons to grow */
+            max-width: 150px; /* Max width for individual buttons */
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            background-color: #e58a53; /* Darker orange on hover */
+            transform: translateY(-3px); /* Lift effect on hover */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
+        }
+
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(0); /* Press effect */
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f7a36c; /* Keep original color but dimmed */
+        }
+
+        /* Result Message Styling */
+        .result-message {
+            font-size: 1.5em;
+            font-weight: 700;
+            min-height: 40px; /* Ensure message area has consistent height */
+            color: #a7f3d0; /* Light green for messages */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            margin-bottom: 25px;
+        }
+
+        /* General Button Styling */
+        button {
+            background-color: #28a745; /* Green for primary actions */
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 15px;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Play Again Button (special style if needed, reusing general button for now) */
+        #playAgainBtn {
+            display: none; /* Hidden by default */
+        }
+
+        /* Message Box / Modal */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .message-box {
+            background-color: #2193b0; /* Match background color */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            color: #fff;
+            width: 90%;
+            max-width: 400px;
+            font-size: 1.2em;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .message-box h3 {
+            margin-top: 0;
+            color: #a7f3d0;
+        }
+
+        .message-box button {
+            background-color: #f7a36c;
+            margin-top: 20px;
+        }
+
+        .message-box button:hover {
+            background-color: #e58a53;
+        }
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .app-container {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .choices {
+                flex-direction: column; /* Stack buttons vertically on very small screens */
+                gap: 15px;
+            }
+
+            .choice-btn {
+                width: 100%; /* Full width for buttons when stacked */
+                max-width: none;
+            }
+
+            .scoreboard {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .score-item {
+                font-size: 1em;
+            }
+
+            .score-value {
+                font-size: 1.8em;
+            }
+
+            .result-message {
+                font-size: 1.2em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .section h2 {
+                font-size: 1.5em;
+            }
+
+            #online-users-list li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>Multiplayer Rock Paper Scissors</h1>
+
+        <!-- Username Section -->
+        <div id="username-section" class="section">
+            <h2>Set Your Username</h2>
+            <input type="text" id="usernameInput" placeholder="Enter your username">
+            <button id="saveUsernameBtn">Save Username</button>
+            <div id="current-user-info"></div>
+        </div>
+
+        <!-- Lobby Section -->
+        <div id="lobby-section" class="section">
+            <h2>Online Players</h2>
+            <ul id="online-users-list">
+                <!-- Online users will be listed here -->
+            </ul>
+            <button id="findGameBtn">Find or Create Game</button>
+            <button id="leaveLobbyBtn" style="background-color: #dc3545; display:none;">Leave Lobby</button>
+        </div>
+
+        <!-- Game Board Section -->
+        <div id="game-board-section" class="section">
+            <h2>Game Board</h2>
+            <div class="scoreboard">
+                <div class="score-item">
+                    <span id="player1Name">You</span>: <span id="player1Score" class="score-value">0</span>
+                </div>
+                <div class="score-item">
+                    <span id="player2Name">Opponent</span>: <span id="player2Score" class="score-value">0</span>
+                </div>
+            </div>
+
+            <div class="choices">
+                <button class="choice-btn" id="rock">Rock</button>
+                <button class="choice-btn" id="paper">Paper</button>
+                <button class="choice-btn" id="scissors">Scissors</button>
+            </div>
+
+            <div class="result-message" id="gameMessage">Waiting for opponent...</div>
+
+            <button id="leaveGameBtn" style="background-color: #dc3545; display:none;">Leave Game</button>
+            <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Message Box Template (Hidden by default) -->
+    <div id="messageBoxOverlay" class="message-box-overlay" style="display: none;">
+        <div class="message-box">
+            <h3 id="messageBoxTitle"></h3>
+            <p id="messageBoxContent"></p>
+            <button id="messageBoxOkBtn">OK</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, addDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables (provided by Canvas environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // DOM elements
+        const usernameSection = document.getElementById('username-section');
+        const usernameInput = document.getElementById('usernameInput');
+        const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+        const currentUserInfo = document.getElementById('current-user-info');
+
+        const lobbySection = document.getElementById('lobby-section');
+        const onlineUsersList = document.getElementById('online-users-list');
+        const findGameBtn = document.getElementById('findGameBtn');
+        const leaveLobbyBtn = document.getElementById('leaveLobbyBtn');
+
+        const gameBoardSection = document.getElementById('game-board-section');
+        const player1NameSpan = document.getElementById('player1Name');
+        const player2NameSpan = document.getElementById('player2Name');
+        const player1ScoreSpan = document.getElementById('player1Score');
+        const player2ScoreSpan = document.getElementById('player2Score');
+        const gameMessageDiv = document.getElementById('gameMessage');
+        const choiceButtons = document.querySelectorAll('.choice-btn');
+        const leaveGameBtn = document.getElementById('leaveGameBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn'); // This button is handled dynamically
+
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxTitle = document.getElementById('messageBoxTitle');
+        const messageBoxContent = document.getElementById('messageBoxContent');
+        const messageBoxOkBtn = document.getElementById('messageBoxOkBtn');
+
+        // State variables
+        let currentUserId = null;
+        let currentUsername = null;
+        let gameId = null; // ID of the current game session
+        let playerNumber = null; // 'player1' or 'player2'
+        let gameUnsubscribe = null; // To unsubscribe from game updates
+        let usersUnsubscribe = null; // To unsubscribe from online users updates
+
+        // Firestore paths
+        const USERS_COLLECTION_PATH = `artifacts/${appId}/users`;
+        const PUBLIC_DATA_COLLECTION_PATH = `artifacts/${appId}/public/data`;
+        const GAMES_COLLECTION_PATH = `${PUBLIC_DATA_COLLECTION_PATH}/games`;
+
+
+        // --- Utility Functions ---
+
+        /**
+         * Shows a custom message box.
+         * @param {string} title - The title of the message box.
+         * @param {string} content - The main message content.
+         * @returns {Promise<void>} - A promise that resolves when the user clicks OK.
+         */
+        function showMessageBox(title, content) {
+            messageBoxTitle.textContent = title;
+            messageBoxContent.textContent = content;
+            messageBoxOverlay.style.display = 'flex'; // Show the overlay
+
+            return new Promise(resolve => {
+                const clickHandler = () => {
+                    messageBoxOverlay.style.display = 'none'; // Hide the overlay
+                    messageBoxOkBtn.removeEventListener('click', clickHandler); // Clean up
+                    resolve();
+                };
+                messageBoxOkBtn.addEventListener('click', clickHandler);
+            });
+        }
+
+        /**
+         * Sets the current view based on the game state.
+         * @param {string} view - 'username', 'lobby', or 'game'.
+         */
+        function setView(view) {
+            usernameSection.style.display = 'none';
+            lobbySection.style.display = 'none';
+            gameBoardSection.style.display = 'none';
+
+            if (view === 'username') {
+                usernameSection.style.display = 'block';
+            } else if (view === 'lobby') {
+                lobbySection.style.display = 'block';
+            } else if (view === 'game') {
+                gameBoardSection.style.display = 'block';
+            }
+        }
+
+        /**
+         * Disables or enables choice buttons.
+         * @param {boolean} disabled - True to disable, false to enable.
+         */
+        function setChoiceButtonsDisabled(disabled) {
+            choiceButtons.forEach(button => {
+                button.disabled = disabled;
+            });
+        }
+
+        // --- Firebase & Authentication ---
+
+        /**
+         * Authenticates the user with Firebase.
+         */
+        async function authenticateUser() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Firebase authentication error:", error);
+                showMessageBox("Authentication Error", "Could not sign in to the game. Please try again later.");
+            }
+        }
+
+        /**
+         * Handles user authentication state changes.
+         * Sets up user ID, loads/sets username, and initializes presence.
+         */
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                console.log("Authenticated with Firebase. User ID:", currentUserId);
+
+                // Initialize user presence
+                await setupUserPresence(currentUserId);
+                await loadUsername();
+            } else {
+                console.log("User is signed out or not authenticated.");
+                currentUserId = null;
+                currentUsername = null;
+                // Clear UI and go back to username prompt
+                currentUserInfo.textContent = '';
+                setView('username');
+            }
+        });
+
+        /**
+         * Sets up user presence in Firestore.
+         * Marks user as online and handles disconnection.
+         * @param {string} userId - The current user's ID.
+         */
+        async function setupUserPresence(userId) {
+            if (!userId) return;
+
+            const userDocRef = doc(db, USERS_COLLECTION_PATH, userId);
+            try {
+                // Set initial online status and lastOnline timestamp
+                await setDoc(userDocRef, {
+                    lastOnline: serverTimestamp(),
+                    status: 'online',
+                    username: currentUsername || 'Guest'
+                }, { merge: true }); // Use merge to avoid overwriting existing username
+
+                // On disconnect, update status to 'offline'
+                // This is a client-side feature and only works when the client gracefully closes.
+                // For robust presence, use Cloud Functions for 'last online' updates and timeouts.
+                // However, for this example, we'll try to set status to 'offline' on page unload.
+                window.addEventListener('beforeunload', async () => {
+                    if (currentUserId) {
+                        await updateDoc(userDocRef, {
+                            status: 'offline',
+                            lastOnline: serverTimestamp()
+                        }).catch(e => console.warn("Could not set user offline on unload:", e));
+                    }
+                });
+
+                 // Listen for changes in the users collection to update online users list
+                if (usersUnsubscribe) {
+                    usersUnsubscribe(); // Unsubscribe from previous listener if any
+                }
+                const usersQuery = query(collection(db, USERS_COLLECTION_PATH), where("status", "==", "online"));
+                usersUnsubscribe = onSnapshot(usersQuery, (snapshot) => {
+                    const onlineUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderOnlineUsers(onlineUsers);
+                });
+
+
+            } catch (error) {
+                console.error("Error setting up user presence:", error);
+            }
+        }
+
+        /**
+         * Loads the username from Firestore or prompts the user to set one.
+         */
+        async function loadUsername() {
+            if (!currentUserId) {
+                setView('username');
+                return;
+            }
+
+            const userDocRef = doc(db, USERS_COLLECTION_PATH, currentUserId);
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists() && docSnap.data().username) {
+                    currentUsername = docSnap.data().username;
+                    currentUserInfo.textContent = `Logged in as: ${currentUsername} (ID: ${currentUserId})`;
+                    console.log("Loaded username:", currentUsername);
+                    setView('lobby');
+                } else {
+                    setView('username');
+                    showMessageBox("Welcome!", "Please set a username to start playing.");
+                }
+            } catch (error) {
+                console.error("Error loading username:", error);
+                showMessageBox("Error", "Could not load username. Please try again.");
+                setView('username');
+            }
+        }
+
+        /**
+         * Saves the username to Firestore.
+         */
+        saveUsernameBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            if (username.length < 3) {
+                showMessageBox("Invalid Username", "Username must be at least 3 characters long.");
+                return;
+            }
+
+            if (!currentUserId) {
+                showMessageBox("Error", "Not authenticated. Please try refreshing the page.");
+                return;
+            }
+
+            const userDocRef = doc(db, USERS_COLLECTION_PATH, currentUserId);
+            try {
+                await updateDoc(userDocRef, { username: username });
+                currentUsername = username;
+                currentUserInfo.textContent = `Logged in as: ${currentUsername} (ID: ${currentUserId})`;
+                showMessageBox("Success", `Username "${username}" saved!`);
+                setView('lobby');
+            } catch (error) {
+                console.error("Error saving username:", error);
+                showMessageBox("Error", "Could not save username. Please try again.");
+            }
+        });
+
+        // --- Lobby Functions ---
+
+        /**
+         * Renders the list of online users in the lobby.
+         * @param {Array<Object>} users - Array of online user objects.
+         */
+        function renderOnlineUsers(users) {
+            onlineUsersList.innerHTML = ''; // Clear previous list
+            const filteredUsers = users.filter(u => u.id !== currentUserId && u.status === 'online');
+
+            if (filteredUsers.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = "No other players online. You can create a game!";
+                onlineUsersList.appendChild(li);
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${user.username} (ID: ${user.id.substring(0, 8)}...)</span> <button data-userid="${user.id}">Invite to Game</button>`;
+                onlineUsersList.appendChild(li);
+
+                // Add event listener to the invite button
+                li.querySelector('button').addEventListener('click', (e) => {
+                    const invitedUserId = e.target.dataset.userid;
+                    // For simplicity, we are not implementing direct invites,
+                    // but rather a "find game" approach.
+                    // This button could be used to trigger 'findGame()' with a preference
+                    // to join a game created by 'invitedUserId'.
+                    // For now, it will just log.
+                    console.log(`Would invite ${invitedUserId} to a game.`);
+                    showMessageBox("Invite Feature", "Direct invites are not yet implemented. Please use 'Find or Create Game'.");
+                });
+            });
+        }
+
+        /**
+         * Finds an existing game in 'waiting' state or creates a new one.
+         */
+        findGameBtn.addEventListener('click', async () => {
+            if (!currentUserId || !currentUsername) {
+                showMessageBox("Error", "Please set your username first.");
+                return;
+            }
+
+            findGameBtn.disabled = true;
+            findGameBtn.textContent = 'Searching...';
+            leaveLobbyBtn.style.display = 'block';
+
+            try {
+                // 1. Look for an existing game that is waiting for a second player
+                const q = query(collection(db, GAMES_COLLECTION_PATH),
+                                where("status", "==", "waiting"),
+                                where("player1Id", "!=", currentUserId)); // Exclude games created by self
+
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Found a waiting game, try to join it
+                    const gameDoc = querySnapshot.docs[0]; // Take the first available game
+                    gameId = gameDoc.id;
+                    const gameRef = doc(db, GAMES_COLLECTION_PATH, gameId);
+
+                    await updateDoc(gameRef, {
+                        player2Id: currentUserId,
+                        player2Username: currentUsername,
+                        status: 'playing',
+                        lastUpdated: serverTimestamp()
+                    });
+                    playerNumber = 'player2';
+                    console.log(`Joined game: ${gameId} as Player 2`);
+                    showMessageBox("Game Found!", `You joined a game against ${gameDoc.data().player1Username}!`);
+                    startGameSession(gameId);
+
+                } else {
+                    // No waiting games, create a new one
+                    const newGameRef = doc(collection(db, GAMES_COLLECTION_PATH)); // Auto-generate ID
+                    gameId = newGameRef.id;
+                    playerNumber = 'player1';
+
+                    await setDoc(newGameRef, {
+                        player1Id: currentUserId,
+                        player1Username: currentUsername,
+                        player1Choice: null,
+                        player1Score: 0,
+                        player2Id: null,
+                        player2Username: null,
+                        player2Choice: null,
+                        player2Score: 0,
+                        status: 'waiting',
+                        turn: 'player1', // Initial turn if needed, or just indicates waiting
+                        round: 0,
+                        lastUpdated: serverTimestamp()
+                    });
+                    console.log(`Created new game: ${gameId} as Player 1`);
+                    showMessageBox("Game Created!", "Waiting for another player to join...");
+                    startGameSession(gameId); // Start listening to updates for this game
+                }
+            } catch (error) {
+                console.error("Error finding/creating game:", error);
+                showMessageBox("Game Error", "Could not find or create a game. Please try again.");
+                findGameBtn.disabled = false;
+                findGameBtn.textContent = 'Find or Create Game';
+                leaveLobbyBtn.style.display = 'none';
+            }
+        });
+
+        /**
+         * Leaves the current game/lobby.
+         */
+        leaveLobbyBtn.addEventListener('click', async () => {
+            if (gameId) {
+                // If in a game, attempt to clean up the game document
+                const gameRef = doc(db, GAMES_COLLECTION_PATH, gameId);
+                try {
+                    await updateDoc(gameRef, { status: 'abandoned', lastUpdated: serverTimestamp() });
+                    console.log(`Game ${gameId} marked as abandoned.`);
+                } catch (error) {
+                    console.error("Error marking game as abandoned:", error);
+                }
+            }
+            resetGameSession();
+            setView('lobby');
+            showMessageBox("Lobby", "You have left the current game/lobby.");
+        });
+
+        /**
+         * Initializes a game session by setting up a real-time listener for the game document.
+         * @param {string} currentActiveGameId - The ID of the game to listen to.
+         */
+        function startGameSession(currentActiveGameId) {
+            setView('game');
+            findGameBtn.disabled = false; // Reset button in lobby
+            findGameBtn.textContent = 'Find or Create Game';
+            leaveLobbyBtn.style.display = 'none'; // Hide leave lobby button
+
+            const gameRef = doc(db, GAMES_COLLECTION_PATH, currentActiveGameId);
+
+            if (gameUnsubscribe) {
+                gameUnsubscribe(); // Unsubscribe from previous game listener if any
+            }
+
+            gameUnsubscribe = onSnapshot(gameRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const gameData = docSnap.data();
+                    updateGameUI(gameData);
+                    handleGameLogic(gameData);
+                } else {
+                    // Game document no longer exists (e.g., deleted by opponent)
+                    showMessageBox("Game Ended", "Your opponent left the game or the game was deleted.");
+                    resetGameSession();
+                    setView('lobby');
+                }
+            }, (error) => {
+                console.error("Error listening to game updates:", error);
+                showMessageBox("Game Error", "Connection to game lost. Returning to lobby.");
+                resetGameSession();
+                setView('lobby');
+            });
+        }
+
+        /**
+         * Updates the UI based on the current game data.
+         * @param {Object} gameData - The current game data from Firestore.
+         */
+        function updateGameUI(gameData) {
+            // Update player names
+            player1NameSpan.textContent = gameData.player1Id === currentUserId ? `${gameData.player1Username} (You)` : gameData.player1Username;
+            player2NameSpan.textContent = gameData.player2Id === currentUserId ? `${gameData.player2Username} (You)` : gameData.player2Username;
+
+            // Update scores
+            player1ScoreSpan.textContent = gameData.player1Score;
+            player2ScoreSpan.textContent = gameData.player2Score;
+
+            // Update game message
+            if (gameData.status === 'waiting') {
+                gameMessageDiv.textContent = `Waiting for ${gameData.player2Username || 'opponent'} to join...`;
+                setChoiceButtonsDisabled(true); // Disable choices while waiting
+                leaveGameBtn.style.display = 'block'; // Allow leaving during waiting
+            } else if (gameData.status === 'playing') {
+                leaveGameBtn.style.display = 'block';
+                playAgainBtn.style.display = 'none';
+
+                const myChoice = playerNumber === 'player1' ? gameData.player1Choice : gameData.player2Choice;
+                const opponentChoice = playerNumber === 'player1' ? gameData.player2Choice : gameData.player1Choice;
+
+                if (myChoice && opponentChoice) {
+                    // Both players have chosen, round is resolved via handleGameLogic
+                    gameMessageDiv.textContent = `Round ${gameData.round} Result: ${gameData.roundWinner}`; // This will be updated by handleGameLogic
+                    setChoiceButtonsDisabled(true); // Disable until choices are cleared
+                } else if (myChoice) {
+                    gameMessageDiv.textContent = "You made your choice. Waiting for opponent...";
+                    setChoiceButtonsDisabled(true);
+                } else if (opponentChoice) {
+                    gameMessageDiv.textContent = `Opponent (${gameData.playerNumber === 'player1' ? gameData.player1Username : gameData.player2Username}) has chosen! Make your move!`;
+                    setChoiceButtonsDisabled(false); // Enable choices for player
+                } else {
+                    gameMessageDiv.textContent = "Make your choice!";
+                    setChoiceButtonsDisabled(false);
+                }
+            } else if (gameData.status === 'finished') {
+                let finalMessage = '';
+                if (gameData.player1Score >= 5) {
+                    finalMessage = `${gameData.player1Username} wins the game!`;
+                } else if (gameData.player2Score >= 5) {
+                    finalMessage = `${gameData.player2Username} wins the game!`;
+                }
+                gameMessageDiv.textContent = finalMessage;
+                gameMessageDiv.style.color = '#a7f3d0';
+                setChoiceButtonsDisabled(true);
+                playAgainBtn.style.display = 'block'; // Show play again
+                leaveGameBtn.style.display = 'block'; // Still allow leaving after game
+            } else if (gameData.status === 'abandoned') {
+                gameMessageDiv.textContent = "Game abandoned by an opponent.";
+                setChoiceButtonsDisabled(true);
+                leaveGameBtn.style.display = 'none'; // No need to leave an abandoned game
+                playAgainBtn.style.display = 'block'; // Offer to play again (create new game)
+                gameMessageDiv.style.color = '#e53e3e';
+            }
+        }
+
+        /**
+         * Handles the game logic for a round based on game data.
+         * Only triggers if both players have made a choice.
+         * @param {Object} gameData - The current game data from Firestore.
+         */
+        async function handleGameLogic(gameData) {
+            if (gameData.status !== 'playing') return;
+
+            const player1Choice = gameData.player1Choice;
+            const player2Choice = gameData.player2Choice;
+
+            // Only proceed if both players have made a choice and it's this client's turn to resolve (or just resolve when both are present)
+            // To avoid race conditions where both clients try to resolve, one client (e.g., player1 or the one who made the *last* move)
+            // should be designated to perform the resolution.
+            // For simplicity, we'll let the client that detects both choices exist trigger the resolution.
+            // A more robust solution would use Firestore transactions or a Cloud Function.
+
+            if (player1Choice && player2Choice) {
+                let winner = '';
+                let message = '';
+                let p1Score = gameData.player1Score;
+                let p2Score = gameData.player2Score;
+
+                if (player1Choice === player2Choice) {
+                    winner = 'tie';
+                    message = `It's a tie! Both chose ${player1Choice}.`;
+                } else if (
+                    (player1Choice === 'rock' && player2Choice === 'scissors') ||
+                    (player1Choice === 'paper' && player2Choice === 'rock') ||
+                    (player1Choice === 'scissors' && player2Choice === 'paper')
+                ) {
+                    winner = 'player1';
+                    p1Score++;
+                    message = `${gameData.player1Username} wins! ${player1Choice} beats ${player2Choice}.`;
+                } else {
+                    winner = 'player2';
+                    p2Score++;
+                    message = `${gameData.player2Username} wins! ${player2Choice} beats ${player1Choice}.`;
+                }
+
+                gameMessageDiv.textContent = message; // Immediately update local message
+
+                // Update Firestore: scores, clear choices, update round winner
+                const gameRef = doc(db, GAMES_COLLECTION_PATH, gameId);
+                try {
+                    await updateDoc(gameRef, {
+                        player1Score: p1Score,
+                        player2Score: p2Score,
+                        player1Choice: null, // Reset for next round
+                        player2Choice: null, // Reset for next round
+                        roundWinner: winner,
+                        round: gameData.round + 1,
+                        lastUpdated: serverTimestamp()
+                    });
+                    console.log("Round resolved and Firestore updated.");
+
+                    // Check for game end after updating scores
+                    if (p1Score >= 5 || p2Score >= 5) {
+                        await updateDoc(gameRef, { status: 'finished', lastUpdated: serverTimestamp() });
+                        showMessageBox("Game Over!", message);
+                    } else {
+                         // Small delay before clearing message for next round
+                        setTimeout(() => {
+                            gameMessageDiv.textContent = "Make your next choice!";
+                            // Re-enable choice buttons after a short delay to allow players to read result
+                            setChoiceButtonsDisabled(false);
+                        }, 2000);
+                    }
+
+                } catch (error) {
+                    console.error("Error updating game state after round:", error);
+                }
+            }
+        }
+
+        /**
+         * Handles a player's choice during a game.
+         * Updates the game document with the player's choice.
+         * @param {Event} event - The click event object.
+         */
+        async function handlePlayerChoice(event) {
+            if (!gameId || !playerNumber) {
+                showMessageBox("Game Error", "Not in an active game.");
+                return;
+            }
+
+            const playerChoice = event.target.id;
+            const gameRef = doc(db, GAMES_COLLECTION_PATH, gameId);
+
+            setChoiceButtonsDisabled(true); // Disable buttons immediately after choice
+
+            try {
+                if (playerNumber === 'player1') {
+                    await updateDoc(gameRef, { player1Choice: playerChoice, lastUpdated: serverTimestamp() });
+                } else {
+                    await updateDoc(gameRef, { player2Choice: playerChoice, lastUpdated: serverTimestamp() });
+                }
+                gameMessageDiv.textContent = "You chose. Waiting for opponent...";
+                console.log(`Player ${playerNumber} chose: ${playerChoice}`);
+            } catch (error) {
+                console.error("Error submitting player choice:", error);
+                showMessageBox("Error", "Could not submit your choice. Please try again.");
+                setChoiceButtonsDisabled(false); // Re-enable if error
+            }
+        }
+
+        /**
+         * Resets the game session and UI for a new game or returning to lobby.
+         */
+        function resetGameSession() {
+            if (gameUnsubscribe) {
+                gameUnsubscribe();
+                gameUnsubscribe = null;
+            }
+            gameId = null;
+            playerNumber = null;
+
+            // Reset UI elements
+            player1ScoreSpan.textContent = '0';
+            player2ScoreSpan.textContent = '0';
+            gameMessageDiv.textContent = 'Waiting for opponent...';
+            gameMessageDiv.style.color = '#a7f3d0';
+            setChoiceButtonsDisabled(false);
+            leaveGameBtn.style.display = 'none';
+            playAgainBtn.style.display = 'none';
+            player1NameSpan.textContent = 'You';
+            player2NameSpan.textContent = 'Opponent';
+        }
+
+        // --- Event Listeners ---
+
+        // Add event listeners to choice buttons
+        choiceButtons.forEach(button => {
+            button.addEventListener('click', handlePlayerChoice);
+        });
+
+        // Event listener for leaving the game
+        leaveGameBtn.addEventListener('click', async () => {
+            if (gameId) {
+                const gameRef = doc(db, GAMES_COLLECTION_PATH, gameId);
+                try {
+                    // Mark game as abandoned by the player who left
+                    await updateDoc(gameRef, { status: 'abandoned', lastUpdated: serverTimestamp() });
+                    console.log(`Player ${playerNumber} left game ${gameId}. Marking as abandoned.`);
+                } catch (error) {
+                    console.error("Error marking game abandoned:", error);
+                }
+            }
+            resetGameSession();
+            setView('lobby');
+            showMessageBox("Game Left", "You have left the game.");
+        });
+
+        // Event listener for Play Again button (creates a new game)
+        playAgainBtn.addEventListener('click', () => {
+            resetGameSession(); // Clear current game state
+            findGameBtn.click(); // Trigger 'Find or Create Game'
+        });
+
+
+        // Initial authentication when the window loads
+        window.onload = function () {
+            authenticateUser();
+        };
+
+        // Ensure user status is set to offline when page closes
+        window.addEventListener('beforeunload', async () => {
+            if (currentUserId) {
+                const userDocRef = doc(db, USERS_COLLECTION_PATH, currentUserId);
+                try {
+                    await updateDoc(userDocRef, { status: 'offline', lastOnline: serverTimestamp() });
+                    console.log("User status set to offline on unload.");
+                } catch (e) {
+                    console.warn("Could not set user offline on unload:", e);
+                }
+            }
+            // Unsubscribe from listeners to prevent memory leaks/phantom updates
+            if (gameUnsubscribe) gameUnsubscribe();
+            if (usersUnsubscribe) usersUnsubscribe();
+        });
+
+    </script>
+</body>
+</html>
